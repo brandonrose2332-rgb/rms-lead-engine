@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Submit a Referral — Real Merchant Services</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f6f3;--surface:#fff;--border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --text:#1a1917;--muted:#6b6a66;--hint:#9e9d99;
+    --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+    --green-bg:#EAF3DE;--green-text:#3B6D11;
+    --red-bg:#FCEBEB;--red-text:#A32D2D;--red-border:#F09595;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem 4rem;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:480px;}
+  .brand{display:flex;align-items:center;gap:8px;margin-bottom:1.75rem;}
+  .brand-badge{font-size:12px;font-weight:600;letter-spacing:0.08em;color:var(--blue);text-transform:uppercase;background:var(--blue-light);padding:3px 9px;border-radius:5px;}
+  .brand-name{font-size:16px;font-weight:600;color:var(--text);}
+  .card-title{font-size:20px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-0.3px;}
+  .card-sub{font-size:14px;color:var(--muted);margin-bottom:1.75rem;line-height:1.6;}
+  .agent-banner{background:var(--blue-light);border:1px solid rgba(24,95,165,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--blue);font-weight:500;margin-bottom:1.5rem;display:none;}
+  .field-group{margin-bottom:1rem;}
+  .field-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block;}
+  .field-label span{color:var(--red-text);}
+  .field-input{width:100%;height:42px;padding:0 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;transition:border-color 0.15s;}
+  .field-input:focus{outline:none;border-color:var(--blue);background:var(--surface);}
+  .field-input::placeholder{color:var(--hint);}
+  .field-textarea{width:100%;height:80px;padding:10px 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;resize:none;line-height:1.5;transition:border-color 0.15s;}
+  .field-textarea:focus{outline:none;border-color:var(--blue);background:var(--surface);}
+  .field-textarea::placeholder{color:var(--hint);}
+  .divider{height:1px;background:var(--border);margin:1.5rem 0;}
+  .section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:1rem;}
+  .btn-submit{width:100%;height:46px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;margin-top:1.5rem;}
+  .btn-submit:hover{background:var(--blue-dark);}
+  .btn-submit:disabled{background:#b0c8e8;cursor:not-allowed;}
+  .error-box{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red-border);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:12px;display:none;}
+  .success-screen{display:none;text-align:center;padding:2rem 0;}
+  .success-icon{font-size:48px;margin-bottom:1rem;display:block;}
+  .success-title{font-size:20px;font-weight:600;color:var(--text);margin-bottom:8px;}
+  .success-sub{font-size:14px;color:var(--muted);line-height:1.6;}
+  .required-note{font-size:12px;color:var(--hint);margin-top:1.5rem;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <span class="brand-badge">RMS</span>
+    <span class="brand-name">Real Merchant Services</span>
+  </div>
+
+  <div id="form-screen">
+    <h1 class="card-title">Submit a referral</h1>
+    <p class="card-sub">Know a business owner who could save money on credit card processing? Fill this out and we'll take it from here.</p>
+
+    <div class="agent-banner" id="agent-banner"></div>
+
+    <div class="section-title">Your info</div>
+
+    <div class="field-group">
+      <label class="field-label">Your name <span>*</span></label>
+      <input class="field-input" type="text" id="agent-name" placeholder="Your full name"/>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Your email</label>
+      <input class="field-input" type="email" id="agent-email" placeholder="you@email.com"/>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title">Business info</div>
+
+    <div class="field-group">
+      <label class="field-label">Business name <span>*</span></label>
+      <input class="field-input" type="text" id="biz-name" placeholder="e.g. Sunshine Nail Salon"/>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Owner / contact name</label>
+      <input class="field-input" type="text" id="owner-name" placeholder="e.g. Maria"/>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Phone number <span>*</span></label>
+      <input class="field-input" type="tel" id="biz-phone" placeholder="(813) 000-0000"/>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Business email</label>
+      <input class="field-input" type="email" id="biz-email" placeholder="owner@business.com"/>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">How do you know them?</label>
+      <input class="field-input" type="text" id="relationship" placeholder="e.g. friend, neighbor, my barber..."/>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Anything else we should know?</label>
+      <textarea class="field-textarea" id="notes" placeholder="e.g. best time to call, they mentioned they're unhappy with their current processor..."></textarea>
+    </div>
+
+    <div class="error-box" id="error-msg"></div>
+    <button class="btn-submit" id="submit-btn" onclick="submitReferral()">Submit referral →</button>
+    <p class="required-note"><span style="color:var(--red-text);">*</span> Required fields. Brandon will reach out to this business within 24 hours.</p>
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <span class="success-icon">🎉</span>
+    <div class="success-title">Referral submitted!</div>
+    <p class="success-sub">Thanks — Brandon will follow up with <strong id="success-biz"></strong> within 24 hours.<br/><br/>When they sign up, you'll earn 20% of the monthly residual for as long as they're a client.</p>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const agentCode = params.get('agent') || '';
+
+  if (agentCode) {
+    const banner = document.getElementById('agent-banner');
+    const displayName = agentCode.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    banner.textContent = 'Referral link for: ' + displayName;
+    banner.style.display = 'block';
+    const nameField = document.getElementById('agent-name');
+    nameField.value = displayName;
+    nameField.readOnly = true;
+    nameField.style.background = 'var(--blue-light)';
+    nameField.style.color = 'var(--blue)';
+    nameField.style.fontWeight = '500';
+  }
+
+  async function submitReferral() {
+    const agentName = document.getElementById('agent-name').value.trim();
+    const bizName = document.getElementById('biz-name').value.trim();
+    const phone = document.getElementById('biz-phone').value.trim();
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    if (!agentName) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; return; }
+    if (!bizName) { errEl.textContent = 'Please enter the business name.'; errEl.style.display = 'block'; return; }
+    if (!phone) { errEl.textContent = 'Please enter a phone number for the business.'; errEl.style.display = 'block'; return; }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+
+    try {
+      const res = await fetch('/api/referrals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentName,
+          agentCode: agentCode || agentName.toLowerCase().replace(/\s+/g,'-'),
+          businessName: bizName,
+          ownerName: document.getElementById('owner-name').value.trim(),
+          phone,
+          email: document.getElementById('biz-email').value.trim(),
+          relationship: document.getElementById('relationship').value.trim(),
+          notes: document.getElementById('notes').value.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Submission failed.');
+      document.getElementById('success-biz').textContent = bizName;
+      document.getElementById('form-screen').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+    } catch(e) {
+      errEl.textContent = e.message; errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Submit referral →';
+    }
+  }
+</script>
+</body>
+</html>
