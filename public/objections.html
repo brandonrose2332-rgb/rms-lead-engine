@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Objection Handler — RMS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f6f3;--surface:#fff;--surface2:#f0efe9;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --text:#1a1917;--muted:#6b6a66;--hint:#9e9d99;
+    --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+    --green-bg:#EAF3DE;--green-text:#3B6D11;
+    --amber-bg:#FAEEDA;--amber-text:#854F0B;
+    --teal-bg:#E1F5EE;--teal-text:#0F6E56;
+    --teal-mid:#9FE1CB;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .app{max-width:720px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:10px;}
+  .logo{display:flex;align-items:baseline;gap:6px;}
+  .logo-rms{font-size:13px;font-weight:600;letter-spacing:0.08em;color:var(--blue);text-transform:uppercase;background:var(--blue-light);padding:3px 8px;border-radius:5px;}
+  .logo-name{font-size:18px;font-weight:600;color:var(--text);letter-spacing:-0.3px;}
+  .logo-page{font-size:14px;color:var(--muted);margin-left:4px;}
+  .header-actions{display:flex;gap:8px;}
+  .btn-ghost{height:32px;padding:0 14px;border:1px solid var(--border2);border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;text-decoration:none;display:inline-flex;align-items:center;}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);}
+
+  .mode-tabs{display:flex;gap:6px;margin-bottom:1.5rem;}
+  .mode-tab{height:36px;padding:0 18px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+  .mode-tab:hover{background:var(--surface2);color:var(--text);}
+  .mode-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+  .obj-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .obj-tab{height:30px;padding:0 12px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+  .obj-tab:hover{background:var(--surface2);color:var(--text);}
+  .obj-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+  .obj-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1rem;}
+  .obj-header{padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);}
+  .obj-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--hint);margin-bottom:5px;}
+  .obj-text{font-size:15px;font-weight:600;color:var(--text);line-height:1.4;}
+  .obj-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px;}
+
+  .response{border-left:3px solid var(--border2);padding-left:14px;}
+  .response.r1{border-left-color:var(--blue);}
+  .response.r2{border-left-color:var(--teal-mid);}
+  .response.r3{border-left-color:#FAC775;}
+  .resp-tag{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;}
+  .resp-tag.r1{color:var(--blue);}
+  .resp-tag.r2{color:var(--teal-text);}
+  .resp-tag.r3{color:var(--amber-text);}
+  .resp-text{font-size:14px;color:var(--text);line-height:1.6;}
+
+  .tip-box{background:var(--surface2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.6;margin-top:2px;}
+  .tip-box strong{color:var(--text);font-weight:600;}
+
+  .study-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .study-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color 0.12s;}
+  .study-card:hover{border-color:var(--blue);}
+  .study-q{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;line-height:1.4;}
+  .study-a{font-size:12px;color:var(--text);line-height:1.5;}
+  .study-hint{font-size:11px;color:var(--blue);margin-top:8px;font-weight:500;}
+
+  @media(max-width:500px){
+    .study-grid{grid-template-columns:1fr;}
+    .obj-tabs{gap:4px;}
+    .obj-tab{font-size:11px;padding:0 10px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <span class="logo-rms">RMS</span>
+      <span class="logo-name">Lead Engine<span class="logo-page"> · Objections</span></span>
+    </div>
+    <div class="header-actions">
+      <a class="btn-ghost" href="/">← Lead CRM</a>
+      <a class="btn-ghost" href="/admin.html">Referral Admin</a>
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('quick',this)">Quick ref</button>
+    <button class="mode-tab" onclick="setMode('study',this)">Study mode</button>
+  </div>
+
+  <div id="quick-mode">
+    <div class="obj-tabs" id="obj-tabs">
+      <button class="obj-tab active" onclick="showObj(0,this)">Happy with processor</button>
+      <button class="obj-tab" onclick="showObj(1,this)">Rates aren't better</button>
+      <button class="obj-tab" onclick="showObj(2,this)">No time</button>
+      <button class="obj-tab" onclick="showObj(3,this)">Just signed a contract</button>
+      <button class="obj-tab" onclick="showObj(4,this)">Not the decision maker</button>
+      <button class="obj-tab" onclick="showObj(5,this)">Too busy right now</button>
+    </div>
+    <div id="obj-display"></div>
+  </div>
+
+  <div id="study-mode" style="display:none;">
+    <div class="study-grid" id="study-grid"></div>
+  </div>
+</div>
+
+<script>
+const objections = [
+  {
+    text: '"We\'re happy with our current processor."',
+    responses: [
+      { tag: 'Lead with this', type: 'r1', text: 'That\'s actually the best time to talk — when you\'re not in pain, you can make a calm decision instead of a rushed one. All I\'m asking for is 10 minutes to show you what others are paying.' },
+      { tag: 'If they push back', type: 'r2', text: 'Happy is great, but happy and overpaying is a different story. Most owners I work with thought they were fine until they saw the comparison side by side.' },
+      { tag: 'Close on this', type: 'r3', text: 'I\'m not here to switch you — I\'m here to show you your options. If your current rates are better, I\'ll tell you that myself.' },
+    ],
+    tip: '<strong>Key insight:</strong> "Happy" usually means "not thinking about it." Your job is to create a reason to think about it — the free analysis is the wedge.'
+  },
+  {
+    text: '"Your rates aren\'t better than what we have."',
+    responses: [
+      { tag: 'Lead with this', type: 'r1', text: 'I\'d love to prove that wrong — can I see your last statement? If your rates are already better, I\'ll shake your hand and walk out. But I\'ve never walked out.' },
+      { tag: 'If they push back', type: 'r2', text: 'Most owners tell me that before they see the numbers. The processor banks on you not comparing — that\'s their whole business model.' },
+      { tag: 'Close on this', type: 'r3', text: 'Give me one statement and 10 minutes. If I can\'t save you money, you lose nothing. If I can, we\'re talking hundreds a month back in your pocket.' },
+    ],
+    tip: '<strong>Key insight:</strong> Never argue rates verbally. Always redirect to the statement. Once they hand it over, the conversation shifts entirely in your favor.'
+  },
+  {
+    text: '"I don\'t have time for this."',
+    responses: [
+      { tag: 'Lead with this', type: 'r1', text: 'I only need 10 minutes — not today, whenever works. I\'ll come back at your slowest time. What day is usually quieter for you?' },
+      { tag: 'If they push back', type: 'r2', text: 'Totally understand. Here\'s my card — the 10 minutes I\'m asking for could be worth $300 a month back in your business. Whenever you\'re ready.' },
+      { tag: 'Close on this', type: 'r3', text: 'You don\'t have time not to. 10 minutes now versus finding out in a year you\'ve been overpaying the whole time.' },
+    ],
+    tip: '<strong>Key insight:</strong> Don\'t fight the objection. Match their energy, shrink your ask to the smallest possible commitment, and book a specific return time before you leave.'
+  },
+  {
+    text: '"We just signed a contract."',
+    responses: [
+      { tag: 'Lead with this', type: 'r1', text: 'That\'s fine — when does it expire? I\'ll put a reminder and come back right before renewal so you have a real option on the table.' },
+      { tag: 'If they push back', type: 'r2', text: 'Some contracts have an early termination clause that costs less than what you\'d save switching. Worth knowing — can I take a quick look?' },
+      { tag: 'Close on this', type: 'r3', text: 'Noted. I\'m not trying to break your contract — I just want to be your next call when it\'s up. What month does it end?' },
+    ],
+    tip: '<strong>Key insight:</strong> A signed contract is a future opportunity. Always leave with a specific month in your notes and follow up 60 days before renewal.'
+  },
+  {
+    text: '"I\'m not the one who makes that decision."',
+    responses: [
+      { tag: 'Lead with this', type: 'r1', text: 'No problem at all — who should I talk to? I\'d love 5 minutes with them, or I can leave something for you to pass along.' },
+      { tag: 'If they push back', type: 'r2', text: 'Understood. If I put together a quick savings comparison, would you be comfortable sharing it with them? All they need to do is look at the numbers.' },
+      { tag: 'Close on this', type: 'r3', text: 'Can you introduce me? Even a quick "hey this guy might save us money" goes a long way. I\'ll do the rest.' },
+    ],
+    tip: '<strong>Key insight:</strong> Get the decision maker\'s name before you leave. Gatekeepers can become internal champions if you treat them right.'
+  },
+  {
+    text: '"Come back another time, we\'re really busy."',
+    responses: [
+      { tag: 'Lead with this', type: 'r1', text: 'Absolutely — when\'s your slowest day? I\'ll come back then and keep it under 10 minutes.' },
+      { tag: 'If they push back', type: 'r2', text: 'Here\'s my card. I\'ll follow up next week — just text me a good time and I\'ll work around your schedule.' },
+      { tag: 'Close on this', type: 'r3', text: 'I get it, I\'ll be quick. Just one question before I go — are you the owner or is there someone else I should connect with?' },
+    ],
+    tip: '<strong>Key insight:</strong> "Come back later" is a soft yes. Lock in a specific day before you walk out — vague follow-ups never happen.'
+  },
+];
+
+function showObj(idx, btn) {
+  if(btn) {
+    document.querySelectorAll('#obj-tabs .obj-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const o = objections[idx];
+  document.getElementById('obj-display').innerHTML =
+    '<div class="obj-card">' +
+      '<div class="obj-header">' +
+        '<div class="obj-label">They say</div>' +
+        '<div class="obj-text">' + o.text + '</div>' +
+      '</div>' +
+      '<div class="obj-body">' +
+        o.responses.map(r =>
+          '<div class="response ' + r.type + '">' +
+            '<div class="resp-tag ' + r.type + '">' + r.tag + '</div>' +
+            '<div class="resp-text">' + r.text + '</div>' +
+          '</div>'
+        ).join('') +
+        '<div class="tip-box">' + o.tip + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderStudy() {
+  document.getElementById('study-grid').innerHTML = objections.map((o,i) =>
+    '<div class="study-card" onclick="switchToQuick(' + i + ')">' +
+      '<div class="study-q">' + o.text + '</div>' +
+      '<div class="study-a">' + o.responses[0].text + '</div>' +
+      '<div class="study-hint">Tap for full response set</div>' +
+    '</div>'
+  ).join('');
+}
+
+function switchToQuick(idx) {
+  const modeTabs = document.querySelectorAll('.mode-tab');
+  modeTabs[0].classList.add('active');
+  modeTabs[1].classList.remove('active');
+  document.getElementById('quick-mode').style.display = 'block';
+  document.getElementById('study-mode').style.display = 'none';
+  const objTabs = document.querySelectorAll('#obj-tabs .obj-tab');
+  showObj(idx, objTabs[idx]);
+}
+
+function setMode(mode, btn) {
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  if(mode === 'quick') {
+    document.getElementById('quick-mode').style.display = 'block';
+    document.getElementById('study-mode').style.display = 'none';
+  } else {
+    document.getElementById('quick-mode').style.display = 'none';
+    document.getElementById('study-mode').style.display = 'block';
+    renderStudy();
+  }
+}
+
+showObj(0);
+</script>
+</body>
+</html>
