@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Content Generator — RMS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f6f3;--surface:#fff;--surface2:#f0efe9;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --text:#1a1917;--muted:#6b6a66;--hint:#9e9d99;
+    --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+    --green-bg:#EAF3DE;--green-text:#3B6D11;
+    --amber-bg:#FAEEDA;--amber-text:#854F0B;
+    --purple-bg:#EEEDFE;--purple-text:#534AB7;
+    --red-bg:#FCEBEB;--red-text:#A32D2D;--red-border:#F09595;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .app{max-width:760px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:10px;}
+  .logo{display:flex;align-items:baseline;gap:6px;}
+  .logo-rms{font-size:13px;font-weight:600;letter-spacing:0.08em;color:var(--blue);text-transform:uppercase;background:var(--blue-light);padding:3px 8px;border-radius:5px;}
+  .logo-name{font-size:18px;font-weight:600;color:var(--text);letter-spacing:-0.3px;}
+  .logo-page{font-size:14px;color:var(--muted);margin-left:4px;}
+  .header-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn-ghost{height:32px;padding:0 14px;border:1px solid var(--border2);border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;text-decoration:none;display:inline-flex;align-items:center;}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);}
+
+  .api-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;}
+  .card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
+  .api-row{display:flex;gap:8px;}
+  .field{flex:1;height:40px;padding:0 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;transition:border-color 0.15s;}
+  .field:focus{outline:none;border-color:var(--blue);background:var(--surface);}
+  .field::placeholder{color:var(--hint);}
+  .btn-save{height:40px;padding:0 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+  .btn-save:hover{background:var(--blue-dark);}
+  .api-hint{font-size:12px;color:var(--hint);margin-top:8px;}
+  .api-hint a{color:var(--blue);cursor:pointer;text-decoration:underline;}
+
+  .generate-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;}
+  .pillars{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem;}
+  .pillar{border:1px solid var(--border2);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all 0.12s;background:transparent;}
+  .pillar:hover{border-color:var(--blue);background:var(--blue-light);}
+  .pillar.selected{border-color:var(--blue);background:var(--blue-light);}
+  .pillar-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+  .pillar-desc{font-size:11px;color:var(--muted);}
+  .platform-row{display:flex;gap:8px;margin-bottom:1rem;}
+  .platform{height:34px;padding:0 16px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+  .platform:hover{background:var(--surface2);}
+  .platform.selected{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .context-input{width:100%;height:72px;padding:10px 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;resize:none;line-height:1.5;margin-bottom:1rem;}
+  .context-input:focus{outline:none;border-color:var(--blue);}
+  .context-input::placeholder{color:var(--hint);}
+  .btn-generate{width:100%;height:46px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;}
+  .btn-generate:hover{background:var(--blue-dark);}
+  .btn-generate:disabled{background:var(--surface2);color:var(--hint);cursor:not-allowed;}
+
+  .error-box{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red-border);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;display:none;}
+
+  .posts-section{display:flex;flex-direction:column;gap:12px;}
+  .post-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .post-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--surface2);}
+  .post-day{font-size:12px;font-weight:600;color:var(--text);}
+  .post-topic{font-size:11px;color:var(--muted);margin-left:8px;}
+  .post-platform{font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px;}
+  .post-platform.fb{background:var(--blue-light);color:var(--blue);}
+  .post-platform.ig{background:var(--purple-bg);color:var(--purple-text);}
+  .post-platform.both{background:var(--green-bg);color:var(--green-text);}
+  .post-body{padding:14px;}
+  .post-text{font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap;min-height:60px;}
+  .post-text.loading{color:var(--hint);font-style:italic;}
+  .post-footer{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);}
+  .btn-copy{height:30px;padding:0 14px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+  .btn-copy:hover{background:var(--surface2);color:var(--text);}
+  .btn-copy.copied{background:var(--green-bg);color:var(--green-text);border-color:#C0DD97;}
+  .btn-regen{height:30px;padding:0 14px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+  .btn-regen:hover{background:var(--surface2);color:var(--text);}
+  .btn-regen:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .week-plan{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;}
+  .week-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+  .week-day{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+  .week-day-name{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+  .week-day-topic{font-size:12px;color:var(--text);font-weight:500;}
+  .week-day-desc{font-size:11px;color:var(--hint);margin-top:2px;}
+
+  .spinner-inline{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.65s linear infinite;vertical-align:middle;margin-right:6px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media(max-width:500px){
+    .pillars{grid-template-columns:1fr;}
+    .week-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <span class="logo-rms">RMS</span>
+      <span class="logo-name">Lead Engine<span class="logo-page"> · Content</span></span>
+    </div>
+    <div class="header-actions">
+      <a class="btn-ghost" href="/">← Lead CRM</a>
+      <a class="btn-ghost" href="/admin.html">Referral Admin</a>
+      <a class="btn-ghost" href="/objections.html">Objections</a>
+    </div>
+  </div>
+
+  <!-- API Key -->
+  <div class="api-card" id="api-section">
+    <div class="card-title">Claude API key</div>
+    <div class="api-row">
+      <input class="field" type="password" id="api-key-input" placeholder="sk-ant-..."/>
+      <button class="btn-save" onclick="saveKey()">Save</button>
+    </div>
+    <div class="api-hint">Get a free key at <a onclick="window.open('https://console.anthropic.com')">console.anthropic.com</a> — free tier is plenty for weekly content.</div>
+  </div>
+
+  <!-- Weekly schedule reference -->
+  <div class="week-plan">
+    <div class="card-title">Your weekly content schedule</div>
+    <div class="week-row">
+      <div class="week-day">
+        <div class="week-day-name">Monday</div>
+        <div class="week-day-topic">Expert tip</div>
+        <div class="week-day-desc">Educate & build authority</div>
+      </div>
+      <div class="week-day">
+        <div class="week-day-name">Wednesday</div>
+        <div class="week-day-topic">Savings story</div>
+        <div class="week-day-desc">Social proof & results</div>
+      </div>
+      <div class="week-day">
+        <div class="week-day-name">Friday</div>
+        <div class="week-day-topic">Real talk</div>
+        <div class="week-day-desc">Behind the scenes & hustle</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generator -->
+  <div class="generate-card">
+    <div class="card-title">Generate this week's posts</div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Focus topic (pick one)</div>
+    <div class="pillars">
+      <div class="pillar selected" data-topic="overpay" onclick="selectPillar(this)">
+        <div class="pillar-label">How much businesses overpay</div>
+        <div class="pillar-desc">Shock them with the truth about hidden fees</div>
+      </div>
+      <div class="pillar" data-topic="fees" onclick="selectPillar(this)">
+        <div class="pillar-label">Hidden fees processors charge</div>
+        <div class="pillar-desc">Expose what they're not telling you</div>
+      </div>
+      <div class="pillar" data-topic="savings" onclick="selectPillar(this)">
+        <div class="pillar-label">Real savings stories</div>
+        <div class="pillar-desc">Show what switching actually looks like</div>
+      </div>
+      <div class="pillar" data-topic="hustle" onclick="selectPillar(this)">
+        <div class="pillar-label">Motivational hustle content</div>
+        <div class="pillar-desc">Day in the life, mindset, grind</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Platform</div>
+    <div class="platform-row">
+      <button class="platform selected" data-platform="Facebook + Instagram" onclick="selectPlatform(this)">Facebook + Instagram</button>
+      <button class="platform" data-platform="Facebook" onclick="selectPlatform(this)">Facebook only</button>
+      <button class="platform" data-platform="Instagram" onclick="selectPlatform(this)">Instagram only</button>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Anything specific to include? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+    <textarea class="context-input" id="extra-context" placeholder="e.g. I visited a nail salon today that was paying 3.9% — use something like that... or leave blank for fully auto-generated"></textarea>
+
+    <button class="btn-generate" id="gen-btn" onclick="generatePosts()">Generate 3 posts for this week</button>
+    <div class="error-box" id="error-msg"></div>
+  </div>
+
+  <div class="posts-section" id="posts-section"></div>
+</div>
+
+<script>
+  let selectedTopic = 'overpay';
+  let selectedPlatform = 'Facebook + Instagram';
+  let generatingCount = 0;
+
+  function saveKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if(!key) return;
+    localStorage.setItem('rms_claude_key', key);
+    document.getElementById('api-key-input').value = '';
+    document.getElementById('api-key-input').placeholder = 'API key saved';
+    document.getElementById('api-section').style.borderColor = '#C0DD97';
+  }
+
+  function selectPillar(el) {
+    document.querySelectorAll('.pillar').forEach(p=>p.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTopic = el.dataset.topic;
+  }
+
+  function selectPlatform(el) {
+    document.querySelectorAll('.platform').forEach(p=>p.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPlatform = el.dataset.platform;
+  }
+
+  const topicLabels = {
+    overpay: 'How much businesses overpay',
+    fees: 'Hidden fees processors charge',
+    savings: 'Real savings stories',
+    hustle: 'Motivational hustle content'
+  };
+
+  const days = [
+    { day: 'Monday', angle: 'expert tip — educate and build authority', hook: 'Start with a surprising fact or question that makes a Tampa Bay business owner stop scrolling.' },
+    { day: 'Wednesday', angle: 'savings story or social proof — show real results', hook: 'Open with a relatable moment or result. Make it feel like a real conversation, not a pitch.' },
+    { day: 'Friday', angle: 'real talk / behind the scenes / hustle mindset', hook: 'Be personal and real. Share something from the week — a win, a lesson, a moment on the road.' },
+  ];
+
+  function buildPrompt(day, context) {
+    const extra = context ? `\n\nContext to work into the post if relevant: "${context}"` : '';
+    return `You are writing a Facebook/Instagram post for Brandon Rose, an Account Executive for Real Merchant Services in the Tampa Bay area.
+
+Brandon's voice: Real, direct, conversational. He walks into businesses cold every day and talks to owners like a normal person — not a salesman. He opens with "hey, quick question — who handles your credit card processing?" He's not corporate. He's hustling.
+
+Brand: Brandon Rose | RMS
+
+Topic focus this week: ${topicLabels[selectedTopic]}
+
+Today's post angle: ${day.angle}
+Hook style: ${day.hook}
+
+Platform: ${selectedPlatform}
+
+Write ONE post that is 3-5 sentences. Short and punchy. No hashtag spam — max 3-4 relevant hashtags at the end. No emojis unless they add something. End with a soft CTA that feels natural, not salesy. Sign off as "— Brandon Rose | RMS" at the end.
+
+Write ONLY the post. No explanation, no preamble, no quotes around it.${extra}`;
+  }
+
+  async function generateSinglePost(idx, context) {
+    const key = localStorage.getItem('rms_claude_key');
+    const card = document.getElementById('post-' + idx);
+    const textEl = card.querySelector('.post-text');
+    const regenBtn = card.querySelector('.btn-regen');
+
+    textEl.textContent = 'Writing...';
+    textEl.classList.add('loading');
+    if(regenBtn) regenBtn.disabled = true;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: buildPrompt(days[idx], context) }]
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error?.message || 'API error');
+      const text = data.content?.[0]?.text || '';
+      textEl.textContent = text;
+      textEl.classList.remove('loading');
+      if(regenBtn) regenBtn.disabled = false;
+    } catch(e) {
+      textEl.textContent = 'Failed to generate. Check your API key.';
+      textEl.classList.remove('loading');
+      if(regenBtn) regenBtn.disabled = false;
+    }
+  }
+
+  async function generatePosts() {
+    const key = localStorage.getItem('rms_claude_key');
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    if(!key) {
+      errEl.textContent = 'Save your Claude API key above first.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const context = document.getElementById('extra-context').value.trim();
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span>Generating...';
+
+    const platformBadge = selectedPlatform === 'Facebook + Instagram' ? 'both' : selectedPlatform === 'Facebook' ? 'fb' : 'ig';
+    const platformLabel = selectedPlatform === 'Facebook + Instagram' ? 'FB + IG' : selectedPlatform;
+
+    document.getElementById('posts-section').innerHTML = days.map((d, i) =>
+      '<div class="post-card" id="post-' + i + '">' +
+        '<div class="post-header">' +
+          '<div style="display:flex;align-items:center;">' +
+            '<span class="post-day">' + d.day + '</span>' +
+            '<span class="post-topic">· ' + topicLabels[selectedTopic] + '</span>' +
+          '</div>' +
+          '<span class="post-platform ' + platformBadge + '">' + platformLabel + '</span>' +
+        '</div>' +
+        '<div class="post-body"><div class="post-text loading">Writing...</div></div>' +
+        '<div class="post-footer">' +
+          '<button class="btn-copy" onclick="copyPost(' + i + ', this)">Copy</button>' +
+          '<button class="btn-regen" disabled onclick="generateSinglePost(' + i + ', \'' + context.replace(/'/g,"\\'") + '\')">Regenerate</button>' +
+        '</div>' +
+      '</div>'
+    ).join('');
+
+    await Promise.all(days.map((_, i) => generateSinglePost(i, context)));
+
+    btn.disabled = false;
+    btn.textContent = 'Generate 3 posts for this week';
+  }
+
+  function copyPost(idx, btn) {
+    const text = document.querySelector('#post-' + idx + ' .post-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  const savedKey = localStorage.getItem('rms_claude_key');
+  if(savedKey) {
+    document.getElementById('api-key-input').placeholder = 'API key saved ✓';
+    document.getElementById('api-section').style.borderColor = '#C0DD97';
+  }
+</script>
+</body>
+</html>

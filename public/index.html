@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RMS Lead Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f6f3;--surface:#fff;--surface2:#f0efe9;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --text:#1a1917;--muted:#6b6a66;--hint:#9e9d99;
+    --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+    --green-bg:#EAF3DE;--green-text:#3B6D11;
+    --amber-bg:#FAEEDA;--amber-text:#854F0B;
+    --gray-bg:#F1EFE8;--gray-text:#5F5E5A;
+    --red-bg:#FCEBEB;--red-text:#A32D2D;--red-border:#F09595;
+    --purple-bg:#EEEDFE;--purple-text:#534AB7;
+    --teal-bg:#E1F5EE;--teal-text:#0F6E56;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .app{max-width:980px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+
+  /* Header */
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+  .logo{display:flex;align-items:baseline;gap:6px;}
+  .logo-rms{font-size:13px;font-weight:600;letter-spacing:0.08em;color:var(--blue);text-transform:uppercase;background:var(--blue-light);padding:3px 8px;border-radius:5px;}
+  .logo-name{font-size:18px;font-weight:600;color:var(--text);letter-spacing:-0.3px;}
+  .header-actions{display:flex;gap:8px;}
+
+  /* Buttons */
+  .btn-ghost{height:32px;padding:0 14px;border:1px solid var(--border2);border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);}
+  .btn-primary{height:40px;padding:0 22px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background 0.15s;}
+  .btn-primary:hover{background:var(--blue-dark);}
+  .btn-primary:disabled{background:var(--surface2);color:var(--hint);cursor:not-allowed;}
+  .btn-sm{height:30px;padding:0 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.12s;}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+  .stat-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--hint);margin-bottom:5px;}
+  .stat-value{font-size:24px;font-weight:600;color:var(--text);line-height:1;}
+  .stat-value.blue{color:var(--blue);}
+  .stat-value.green{color:var(--green-text);}
+  .stat-value.amber{color:var(--amber-text);}
+  .stat-value.purple{color:var(--purple-text);}
+
+  /* Search */
+  .search-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;}
+  .card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+  .search-row{display:flex;gap:8px;margin-bottom:8px;}
+  .field{flex:1;height:40px;padding:0 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;transition:border-color 0.15s;}
+  .field:focus{outline:none;border-color:var(--blue);background:var(--surface);}
+  .field::placeholder{color:var(--hint);}
+
+  /* Messages */
+  .error-box{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red-border);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:8px;display:none;}
+  .success-box{background:var(--green-bg);color:var(--green-text);border:1px solid #C0DD97;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:8px;display:none;}
+
+  /* Leads */
+  .leads-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .leads-toolbar{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .leads-count{font-size:13px;font-weight:600;color:var(--text);}
+  .filter-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+  .tab{height:28px;padding:0 11px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.12s;}
+  .tab:hover{background:var(--surface2);}
+  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+  /* Lead rows */
+  .lead-row{display:grid;grid-template-columns:36px 1fr 110px 92px 112px 96px;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);transition:background 0.1s;}
+  .lead-row:last-child{border-bottom:none;}
+  .lead-row:hover{background:var(--bg);}
+  .lead-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--blue);flex-shrink:0;}
+  .lead-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lead-meta{font-size:11px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap;}
+  .badge-new{background:var(--blue-light);color:var(--blue);}
+  .badge-visited{background:var(--teal-bg);color:var(--teal-text);}
+  .badge-contacted{background:var(--green-bg);color:var(--green-text);}
+  .badge-followup{background:var(--amber-bg);color:var(--amber-text);}
+  .badge-closed{background:var(--green-bg);color:var(--green-text);}
+  .badge-dead{background:var(--gray-bg);color:var(--gray-text);}
+  .status-select{height:30px;padding:0 8px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;width:100%;}
+  .status-select:focus{outline:none;border-color:var(--blue);}
+  .btn-visit{border:1px solid var(--teal-text);color:var(--teal-text);background:transparent;}
+  .btn-visit:hover{background:var(--teal-text);color:#fff;}
+  .btn-emailed{border:1px solid var(--purple-text);color:var(--purple-text);background:var(--purple-bg);cursor:default;}
+  .btn-emailed:hover{background:var(--purple-bg);color:var(--purple-text);}
+
+  /* Modal base */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--surface);border-radius:14px;padding:1.75rem;width:100%;max-width:480px;margin:1rem;border:1px solid var(--border);}
+  .modal-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+  .modal-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block;}
+  .modal-input{width:100%;height:40px;padding:0 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:14px;}
+  .modal-input:focus{outline:none;border-color:var(--blue);}
+  .modal-textarea{width:100%;height:72px;padding:10px 13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;resize:none;margin-bottom:14px;line-height:1.5;}
+  .modal-textarea:focus{outline:none;border-color:var(--blue);}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .modal-error{background:var(--red-bg);color:var(--red-text);border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:12px;display:none;}
+
+  /* Template picker */
+  .template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .template-card{border:1px solid var(--border2);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.12s;text-align:left;background:transparent;font-family:'DM Sans',sans-serif;}
+  .template-card:hover{border-color:var(--blue);background:var(--blue-light);}
+  .template-card.selected{border-color:var(--blue);background:var(--blue-light);}
+  .template-card .t-icon{font-size:18px;margin-bottom:6px;display:block;}
+  .template-card .t-label{font-size:12px;font-weight:600;color:var(--text);display:block;}
+  .template-card .t-desc{font-size:11px;color:var(--muted);margin-top:2px;display:block;line-height:1.4;}
+
+  /* Empty / loading */
+  .empty-state{padding:3.5rem 1rem;text-align:center;color:var(--hint);font-size:14px;line-height:1.6;}
+  .loading-state{padding:2.5rem;text-align:center;color:var(--muted);font-size:13px;}
+  .spinner{display:inline-block;width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.65s linear infinite;margin-bottom:10px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media(max-width:640px){
+    .stats{grid-template-columns:repeat(3,1fr);}
+    .lead-row{grid-template-columns:34px 1fr 88px 80px;}
+    .lead-row .lead-meta,.lead-row .status-select{display:none;}
+    .template-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <span class="logo-rms">RMS</span>
+      <span class="logo-name">Lead Engine</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-ghost" onclick="clearLeads()">Clear all</button>
+      <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
+      <a href="/admin.html"><button class="btn-ghost">Referral Admin</button></a>
+      <a href="/objections.html"><button class="btn-ghost">Objections</button></a>
+      <a href="/content.html"><button class="btn-ghost">Content</button></a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-value" id="stat-total">0</div></div>
+    <div class="stat"><div class="stat-label">New</div><div class="stat-value blue" id="stat-new">0</div></div>
+    <div class="stat"><div class="stat-label">Visited</div><div class="stat-value" style="color:var(--teal-text)" id="stat-visited">0</div></div>
+    <div class="stat"><div class="stat-label">Follow-up</div><div class="stat-value amber" id="stat-followup">0</div></div>
+    <div class="stat"><div class="stat-label">Emailed</div><div class="stat-value purple" id="stat-emailed">0</div></div>
+  </div>
+
+  <div class="search-card">
+    <div class="card-title">Find new leads</div>
+    <div class="search-row">
+      <input class="field" type="text" id="city-input" placeholder="City or zip (e.g. Tampa, FL)"/>
+      <select class="field" id="biz-type" style="flex:0 0 190px;">
+        <option value="hair salon">Hair salons</option>
+        <option value="nail salon">Nail salons</option>
+        <option value="auto repair">Auto repair shops</option>
+        <option value="spa">Spas &amp; wellness</option>
+        <option value="barber shop">Barber shops</option>
+        <option value="dry cleaner">Dry cleaners</option>
+        <option value="massage therapy">Massage therapy</option>
+        <option value="tattoo shop">Tattoo shops</option>
+        <option value="pet grooming">Pet grooming</option>
+        <option value="laundromat">Laundromats</option>
+        <option value="restaurant">Restaurants</option>
+        <option value="retail store">Retail stores</option>
+      </select>
+      <button class="btn-primary" id="search-btn" onclick="searchLeads()">Find leads</button>
+    </div>
+    <div id="error-msg" class="error-box"></div>
+    <div id="success-msg" class="success-box"></div>
+  </div>
+
+  <div class="leads-card">
+    <div class="leads-toolbar">
+      <span class="leads-count" id="leads-count">Your leads</span>
+      <div class="filter-tabs">
+        <button class="tab active" onclick="filterLeads('all',this)">All</button>
+        <button class="tab" onclick="filterLeads('New',this)">New</button>
+        <button class="tab" onclick="filterLeads('Visited',this)">Visited</button>
+        <button class="tab" onclick="filterLeads('Follow-up',this)">Follow-up</button>
+        <button class="tab" onclick="filterLeads('Emailed',this)">Emailed</button>
+        <button class="tab" onclick="filterLeads('Closed',this)">Closed</button>
+      </div>
+    </div>
+    <div id="leads-list">
+      <div class="empty-state">Search a city above to pull leads automatically.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Visit Log Modal -->
+<div class="modal-bg" id="visit-modal">
+  <div class="modal">
+    <div class="modal-title">Log visit</div>
+    <div class="modal-sub">You visited <strong id="visit-biz-name"></strong>. Choose the outcome and optionally add a note — then pick an email template to fire off right now.</div>
+    <div class="modal-error" id="visit-error"></div>
+
+    <label class="modal-label">Visit outcome</label>
+    <select class="modal-input" id="visit-outcome" style="height:40px;cursor:pointer;">
+      <option value="thinking">Thinking it over — follow up later</option>
+      <option value="info">Wants more info — send details now</option>
+      <option value="close">Ready to move — let's close</option>
+      <option value="notinterested">Not interested</option>
+    </select>
+
+    <label class="modal-label">Notes (optional)</label>
+    <textarea class="modal-textarea" id="visit-notes" placeholder="e.g. spoke with Maria the owner, busy on Mondays, uses Square currently..."></textarea>
+
+    <label class="modal-label">Send follow-up email now?</label>
+    <div class="template-grid" id="template-grid">
+      <button class="template-card selected" data-template="thinking" onclick="selectTemplate(this)">
+        <span class="t-icon">🤔</span>
+        <span class="t-label">Thinking it over</span>
+        <span class="t-desc">Soft, no pressure follow-up</span>
+      </button>
+      <button class="template-card" data-template="info" onclick="selectTemplate(this)">
+        <span class="t-icon">📋</span>
+        <span class="t-label">Wants more info</span>
+        <span class="t-desc">Explains how RMS works</span>
+      </button>
+      <button class="template-card" data-template="close" onclick="selectTemplate(this)">
+        <span class="t-icon">🤝</span>
+        <span class="t-label">Ready to close</span>
+        <span class="t-desc">Next steps to get started</span>
+      </button>
+    </div>
+
+    <label class="modal-label">Their email address</label>
+    <input class="modal-input" type="email" id="visit-email" placeholder="owner@business.com"/>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeVisitModal()">Cancel</button>
+      <button class="btn-ghost" id="log-only-btn" onclick="logVisitOnly()">Log only (no email)</button>
+      <button class="btn-primary" id="log-send-btn" onclick="logAndSend()">Log &amp; send email</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allLeads = JSON.parse(localStorage.getItem('rms_leads_v3') || '[]');
+  let currentFilter = 'all';
+  let pendingVisitIdx = null;
+  let selectedTemplate = 'thinking';
+
+  function save(){try{localStorage.setItem('rms_leads_v3',JSON.stringify(allLeads));}catch(e){}}
+  function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();}
+  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  function badgeClass(s){
+    return{'New':'badge-new','Visited':'badge-visited','Contacted':'badge-contacted','Follow-up':'badge-followup','Closed':'badge-closed','Not interested':'badge-dead'}[s]||'badge-new';
+  }
+
+  function updateStats(){
+    document.getElementById('stat-total').textContent=allLeads.length;
+    document.getElementById('stat-new').textContent=allLeads.filter(l=>l.status==='New').length;
+    document.getElementById('stat-visited').textContent=allLeads.filter(l=>l.status==='Visited').length;
+    document.getElementById('stat-followup').textContent=allLeads.filter(l=>l.status==='Follow-up').length;
+    document.getElementById('stat-emailed').textContent=allLeads.filter(l=>l.emailed).length;
+  }
+
+  function renderLeads(){
+    const list=document.getElementById('leads-list');
+    const filtered=currentFilter==='all'?allLeads:
+      currentFilter==='Emailed'?allLeads.filter(l=>l.emailed):
+      allLeads.filter(l=>l.status===currentFilter);
+    document.getElementById('leads-count').textContent='Your leads ('+filtered.length+')';
+    if(!filtered.length){
+      list.innerHTML='<div class="empty-state">'+(allLeads.length?'No leads match this filter.':'Search a city above to pull leads automatically.')+'</div>';
+      return;
+    }
+    list.innerHTML=filtered.map(lead=>{
+      const idx=allLeads.indexOf(lead);
+      const opts=['New','Visited','Contacted','Follow-up','Closed','Not interested'].map(s=>'<option value="'+s+'"'+(lead.status===s?' selected':'')+'>'+s+'</option>').join('');
+      const actionBtn=lead.emailed
+        ?'<button class="btn-sm btn-emailed" disabled>✓ Emailed</button>'
+        :'<button class="btn-sm btn-visit" onclick="openVisitModal('+idx+')">Log visit</button>';
+      return '<div class="lead-row">'+
+        '<div class="lead-avatar">'+initials(lead.name)+'</div>'+
+        '<div><div class="lead-name">'+esc(lead.name)+'</div><div class="lead-meta">'+esc(lead.address)+'</div></div>'+
+        '<div class="lead-meta" style="font-size:11px;color:var(--muted);">'+esc(lead.type)+'</div>'+
+        '<span class="badge '+badgeClass(lead.status)+'">'+lead.status+'</span>'+
+        '<select class="status-select" onchange="updateStatus('+idx+',this.value)">'+opts+'</select>'+
+        actionBtn+'</div>';
+    }).join('');
+  }
+
+  function updateStatus(idx,status){allLeads[idx].status=status;save();updateStats();renderLeads();}
+
+  function filterLeads(f,btn){
+    currentFilter=f;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    renderLeads();
+  }
+
+  function selectTemplate(el){
+    document.querySelectorAll('.template-card').forEach(c=>c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTemplate=el.dataset.template;
+  }
+
+  function openVisitModal(idx){
+    pendingVisitIdx=idx;
+    selectedTemplate='thinking';
+    document.querySelectorAll('.template-card').forEach((c,i)=>c.classList.toggle('selected',i===0));
+    document.getElementById('visit-biz-name').textContent=allLeads[idx].name;
+    document.getElementById('visit-email').value=allLeads[idx].email||'';
+    document.getElementById('visit-notes').value=allLeads[idx].notes||'';
+    document.getElementById('visit-outcome').value='thinking';
+    document.getElementById('visit-error').style.display='none';
+    document.getElementById('log-send-btn').disabled=false;
+    document.getElementById('log-send-btn').textContent='Log & send email';
+    document.getElementById('visit-modal').classList.add('open');
+  }
+
+  function closeVisitModal(){document.getElementById('visit-modal').classList.remove('open');pendingVisitIdx=null;}
+
+  function outcomeToStatus(o){return{thinking:'Follow-up',info:'Follow-up',close:'Contacted',notinterested:'Not interested'}[o]||'Visited';}
+
+  function logVisitOnly(){
+    if(pendingVisitIdx===null)return;
+    const outcome=document.getElementById('visit-outcome').value;
+    const notes=document.getElementById('visit-notes').value.trim();
+    allLeads[pendingVisitIdx].status=outcomeToStatus(outcome);
+    allLeads[pendingVisitIdx].visitedAt=new Date().toLocaleDateString();
+    allLeads[pendingVisitIdx].notes=notes;
+    save();updateStats();renderLeads();closeVisitModal();
+    showSuccess('Visit logged for '+allLeads[pendingVisitIdx]?.name||'lead');
+  }
+
+  async function logAndSend(){
+    if(pendingVisitIdx===null)return;
+    const lead=allLeads[pendingVisitIdx];
+    const toEmail=document.getElementById('visit-email').value.trim();
+    const notes=document.getElementById('visit-notes').value.trim();
+    const outcome=document.getElementById('visit-outcome').value;
+    const errEl=document.getElementById('visit-error');
+    errEl.style.display='none';
+    if(!toEmail||!toEmail.includes('@')){errEl.textContent='Enter a valid email address to send, or use "Log only".';errEl.style.display='block';return;}
+    const btn=document.getElementById('log-send-btn');
+    btn.disabled=true;btn.textContent='Sending...';
+    try{
+      const res=await fetch('/api/send-outreach',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({businessName:lead.name,businessType:lead.type,toEmail,template:selectedTemplate,notes}),
+      });
+      const data=await res.json();
+      if(!res.ok||data.error)throw new Error(data.error||'Send failed.');
+      allLeads[pendingVisitIdx].status=outcomeToStatus(outcome);
+      allLeads[pendingVisitIdx].emailed=true;
+      allLeads[pendingVisitIdx].email=toEmail;
+      allLeads[pendingVisitIdx].emailedAt=new Date().toLocaleDateString();
+      allLeads[pendingVisitIdx].visitedAt=new Date().toLocaleDateString();
+      allLeads[pendingVisitIdx].notes=notes;
+      save();updateStats();renderLeads();closeVisitModal();
+      showSuccess('Visit logged + email sent to '+lead.name);
+    }catch(e){
+      errEl.textContent=e.message;errEl.style.display='block';
+      btn.disabled=false;btn.textContent='Log & send email';
+    }
+  }
+
+  async function searchLeads(){
+    const city=document.getElementById('city-input').value.trim();
+    const type=document.getElementById('biz-type').value;
+    const errEl=document.getElementById('error-msg');
+    errEl.style.display='none';
+    if(!city){errEl.textContent='Enter a city or zip code first.';errEl.style.display='block';return;}
+    const btn=document.getElementById('search-btn');
+    btn.disabled=true;btn.textContent='Searching...';
+    document.getElementById('leads-list').innerHTML='<div class="loading-state"><div class="spinner"></div><br>Finding '+type+'s near '+city+'...</div>';
+    try{
+      const res=await fetch('/api/places?city='+encodeURIComponent(city)+'&type='+encodeURIComponent(type));
+      const data=await res.json();
+      if(!res.ok||data.error)throw new Error(data.error||'Search failed.');
+      if(!data.results||!data.results.length)throw new Error('No businesses found. Try a different city or type.');
+      const newLeads=data.results.map(p=>({id:p.place_id,name:p.name,address:p.vicinity||'',phone:'',type,status:'New',emailed:false,addedAt:new Date().toLocaleDateString()}));
+      const existingIds=new Set(allLeads.map(l=>l.id));
+      const fresh=newLeads.filter(l=>!existingIds.has(l.id));
+      allLeads=[...fresh,...allLeads];
+      save();updateStats();
+      currentFilter='all';
+      document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+      renderLeads();
+      if(fresh.length===0){errEl.textContent='All '+newLeads.length+' results already in your list.';errEl.style.display='block';}
+    }catch(e){
+      errEl.textContent=e.message;errEl.style.display='block';
+      document.getElementById('leads-list').innerHTML='<div class="empty-state">Search failed. See error above.</div>';
+    }
+    btn.disabled=false;btn.textContent='Find leads';
+  }
+
+  function showSuccess(msg){
+    const s=document.getElementById('success-msg');
+    s.textContent=msg;s.style.display='block';
+    setTimeout(()=>s.style.display='none',4000);
+  }
+
+  function exportCSV(){
+    if(!allLeads.length)return;
+    const rows=[['Name','Address','Email','Type','Status','Notes','Visited','Emailed','Added'],
+      ...allLeads.map(l=>[l.name,l.address,l.email||'',l.type,l.status,l.notes||'',l.visitedAt||'',l.emailed?'Yes':'No',l.addedAt])];
+    const csv=rows.map(r=>r.map(c=>'"'+(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='rms_leads.csv';a.click();
+  }
+
+  function clearLeads(){
+    if(!allLeads.length)return;
+    if(confirm('Clear all '+allLeads.length+' leads? This cannot be undone.')){allLeads=[];save();updateStats();renderLeads();}
+  }
+
+  document.getElementById('visit-modal').addEventListener('click',function(e){if(e.target===this)closeVisitModal();});
+  document.getElementById('visit-outcome').addEventListener('change',function(){
+    const map={thinking:0,info:1,close:2,notinterested:-1};
+    const i=map[this.value];
+    document.querySelectorAll('.template-card').forEach((c,ci)=>{
+      c.classList.toggle('selected',ci===i);
+      if(ci===i)selectedTemplate=c.dataset.template;
+    });
+  });
+
+  updateStats();renderLeads();
+</script>
+</body>
+</html>
