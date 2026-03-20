@@ -1,98 +1,44 @@
-const { createClient } = require('@supabase/supabase-js');
-
 exports.handler = async function (event) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  };
+  const { type, lat, lng, city } = event.queryStringParameters || {};
+  const apiKey = process.env.GOOGLE_API_KEY;
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+  if (!apiKey) {
+    return { statusCode: 500, body: JSON.stringify({ error: "API key not configured on server." }) };
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+  try {
+    // Step 1: Geocode if city provided
+    let latitude = lat;
+    let longitude = lng;
 
-  if (!supabaseUrl || !supabaseKey) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Database not configured.' }) };
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // GET — fetch all referrals (admin)
-  if (event.httpMethod === 'GET') {
-    const { data, error } = await supabase
-      .from('referrals')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
-    return { statusCode: 200, headers, body: JSON.stringify({ referrals: data }) };
-  }
-
-  // POST — submit a new referral
-  if (event.httpMethod === 'POST') {
-    let body;
-    try { body = JSON.parse(event.body); } catch {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid request.' }) };
+    if (city && (!lat || !lng)) {
+      const geoRes = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${apiKey}`
+      );
+      const geoData = await geoRes.json();
+      if (!geoData.results || !geoData.results.length) {
+        return { statusCode: 400, body: JSON.stringify({ error: "Location not found. Try a different city or zip." }) };
+      }
+      latitude = geoData.results[0].geometry.location.lat;
+      longitude = geoData.results[0].geometry.location.lng;
     }
 
-    const { agentName, agentCode, businessName, ownerName, phone, email, relationship, notes } = body;
-    if (!agentName || !businessName || !phone) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required fields.' }) };
+    // Step 2: Nearby search
+    const placesRes = await fetch(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=8000&type=establishment&keyword=${encodeURIComponent(type || "business")}&key=${apiKey}`
+    );
+    const placesData = await placesRes.json();
+
+    if (placesData.status === "REQUEST_DENIED") {
+      return { statusCode: 403, body: JSON.stringify({ error: "API key denied. Check your Google Cloud console." }) };
     }
 
-    const { data, error } = await supabase.from('referrals').insert([{
-      agent_name: agentName,
-      agent_code: agentCode || agentName.toLowerCase().replace(/\s+/g, '-'),
-      business_name: businessName,
-      owner_name: ownerName || '',
-      phone,
-      email: email || '',
-      relationship: relationship || '',
-      notes: notes || '',
-      status: 'New',
-      monthly_residual: 0,
-      commission_owed: 0,
-    }]).select();
-
-    if (error) return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true, referral: data[0] }) };
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ results: placesData.results || [], location: { lat: latitude, lng: longitude } }),
+    };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
-
-  // PATCH — update a referral (status, residual)
-  if (event.httpMethod === 'PATCH') {
-    let body;
-    try { body = JSON.parse(event.body); } catch {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid request.' }) };
-    }
-
-    const { id, ...updates } = body;
-    if (!id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing id.' }) };
-
-    // Auto-calculate commission if residual updated
-    if (updates.monthly_residual !== undefined) {
-      updates.commission_owed = parseFloat((updates.monthly_residual * 0.20).toFixed(2));
-    }
-
-    const { data, error } = await supabase.from('referrals').update(updates).eq('id', id).select();
-    if (error) return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true, referral: data[0] }) };
-  }
-
-
-  // DELETE — remove a referral
-  if (event.httpMethod === 'DELETE') {
-    let body;
-    try { body = JSON.parse(event.body); } catch {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid request.' }) };
-    }
-    const { id } = body;
-    if (!id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing id.' }) };
-    const { error } = await supabase.from('referrals').delete().eq('id', id);
-    if (error) return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
-  }
-
-  return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed.' }) };
 };
